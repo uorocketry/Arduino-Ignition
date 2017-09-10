@@ -1,3 +1,4 @@
+#include <Servo.h>
 int inPin = 2;         // the number of the input pin
 
 boolean switch_state = false;      // the current state of the output pin
@@ -27,8 +28,27 @@ void loop()
   }
   
 //**************************** insert code for valve in here***************************************  
+      Servo servo;
       if(switch_state)
         Serial.println("on");
+          servo.attach(9);
+
+          servo.write(70);
+           delay(2000);
+    
+          for(int pos = 70; pos<=110; pos++){
+            servo.write(pos);
+            delay(40);  
+          }
+        
+          for(int pos=110; pos<=180; pos++){
+            servo.write(pos);
+            delay(15);
+          }
+          delay(10000);
+          servo.write(25);
+          delay(500);
+          servo.detach();
       else
         Serial.println("off");
 //*************************************************************************************************
