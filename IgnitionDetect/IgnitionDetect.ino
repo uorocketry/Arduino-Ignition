@@ -17,7 +17,7 @@ CLOSE = '5'
 };
 
 States state;
-void stateMachine(enum States state);
+enum States stateMachine(enum States state);
 
 void setup()
 {
@@ -38,7 +38,8 @@ void loop()
     Serial.write(state);
     // TO DO: some check statement if serial input is not a defined enum value
   }
-  stateMachine(state);
+  state = stateMachine(state);
+  Serial.println(state);
 }
 
 /* Emergency Stop Function */
@@ -50,7 +51,7 @@ void kill_test() {
 }
 
 /*State machine function */
-void stateMachine(enum States state)
+enum States stateMachine(enum States state)
 {
   switch (state){
    case STOP:
@@ -75,11 +76,12 @@ void stateMachine(enum States state)
    default:
      break;
   }
+  return state;
 }
 
 /* Valve Open Sequence */
 void valveOpen(){
-  
+  servo.attach(servoPin);
   servo.write(70);
   delay(2000);
   
