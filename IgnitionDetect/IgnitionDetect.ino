@@ -27,7 +27,7 @@ void setup()
   //attachInterrupt(digitalPinToInterrupt(interruptPin), kill_test, LOW);
   servo.attach(servoPin);
   // initial state is stop
-  state = (States)WAIT;
+  state = (States)STOP;
 }
 
 void loop()
@@ -40,7 +40,6 @@ void loop()
   }
   stateMachine(state);
 }
-
 
 /* Emergency Stop Function */
 void kill_test() {
