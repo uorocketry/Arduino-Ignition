@@ -54,7 +54,6 @@ void stateMachine(enum States state)
 {
   switch (state){
    case STOP:
-   // Go to either Ignite, wait
      digitalWrite(led, LOW);
      state = WAIT;
      break;
@@ -64,12 +63,10 @@ void stateMachine(enum States state)
      break;
    case OPEN:
      valveOpen();
-   // Go to CLOSE
-   state = CLOSE;
+     state = CLOSE;
      break;
    case CLOSE:
      valveClose();
-     // Go to OPEN or RESET
      state = WAIT;
      break;
    case WAIT:
