@@ -8,7 +8,7 @@ int servoPin = 9;
 const int led = 6; // place mat for igniter
 
 /* Assign states to input commands */ 
-typedef enum States{
+typedef enum State{
 STOP = '1',
 IGNITE = '2',
 OPEN = '3',
@@ -16,8 +16,8 @@ WAIT = '4',
 CLOSE = '5'
 };
 
-States state;
-enum States stateMachine(enum States state);
+State state;
+enum State stateMachine(enum State state);
 
 void setup()
 {
@@ -27,14 +27,14 @@ void setup()
   //attachInterrupt(digitalPinToInterrupt(interruptPin), kill_test, LOW);
   servo.attach(servoPin);
   // initial state is stop
-  state = (States)STOP;
+  state = (State)STOP;
 }
 
 void loop()
 {
   /* Read input Commands */
   if (Serial.available()) {
-    state = (States)Serial.read();
+    state = (State)Serial.read();
     Serial.write(state);
     // TO DO: some check statement if serial input is not a defined enum value
   }
@@ -51,7 +51,7 @@ void kill_test() {
 }
 
 /*State machine function */
-enum States stateMachine(enum States state)
+enum State stateMachine(enum State state)
 {
   switch (state){
    case STOP:
