@@ -17,7 +17,7 @@ CLOSE = '5'
 };
 
 State state;
-enum State stateMachine(enum State state);
+State stateMachine(State state);
 
 void setup()
 {
@@ -51,7 +51,7 @@ void kill_test() {
 }
 
 /*State machine function */
-enum State stateMachine(enum State state)
+State stateMachine(State state)
 {
   switch (state){
    case STOP:
