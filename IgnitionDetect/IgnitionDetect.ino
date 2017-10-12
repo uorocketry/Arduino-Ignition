@@ -6,7 +6,6 @@ Servo servo;
 int close_servo = 25;
 int servoPin = 9;
 const int led = 6; // place mat for igniter
-unsigned long previous_millis = 0;
 
 /* Assign states to input commands */ 
 typedef enum State{
