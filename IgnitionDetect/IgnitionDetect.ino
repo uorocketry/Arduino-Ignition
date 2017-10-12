@@ -6,6 +6,7 @@ Servo servo;
 int close_servo = 25;
 int servoPin = 9;
 const int led = 6; // place mat for igniter
+unsigned long previous_millis = 0;
 
 /* Assign states to input commands */ 
 typedef enum State{
@@ -17,7 +18,11 @@ CLOSE = '5'
 };
 
 State state;
+/* Function Prototypes */
 State stateMachine(State state);
+State serialDelay(int numofdelays, int delay_length);
+State valveOpen();
+State valveClose();
 
 void setup()
 {
@@ -35,19 +40,10 @@ void loop()
   /* Read input Commands */
   if (Serial.available()) {
     state = (State)Serial.read();
-    Serial.write(state);
     // TO DO: some check statement if serial input is not a defined enum value
   }
   state = stateMachine(state);
   Serial.println(state);
-}
-
-/* Emergency Stop Function */
-void kill_test() {
-  servo.attach(servoPin);
-  Serial.println("END");
-  servo.write(close_servo);
-  servo.detach();
 }
 
 /*State machine function */
@@ -55,7 +51,11 @@ State stateMachine(State state)
 {
   switch (state){
    case STOP:
+     servo.attach(servoPin);
      digitalWrite(led, LOW);
+     servo.write(close_servo);
+     servo.detach();
+     Serial.println("END");
      state = WAIT;
      break;
    case IGNITE:
@@ -63,11 +63,10 @@ State stateMachine(State state)
      state = WAIT;
      break;
    case OPEN:
-     valveOpen();
-     state = CLOSE;
+     state = valveOpen();
      break;
    case CLOSE:
-     valveClose();
+     state = valveClose();
      state = WAIT;
      break;
    case WAIT:
@@ -80,26 +79,45 @@ State stateMachine(State state)
 }
 
 /* Valve Open Sequence */
-void valveOpen(){
+State valveOpen(){
+  State state = OPEN;
   servo.attach(servoPin);
   servo.write(70);
-  delay(2000);
+  state = serialDelay(20, 100);
   
   for (int pos = 70; pos <= 110; pos++) {
     servo.write(pos);
-    delay(40);
+    state = serialDelay(4, 10);
   }
   
   for (int pos = 110; pos <= 180; pos++) {
     servo.write(pos);
-    delay(15);
+    state = serialDelay(3, 5);
   }
-  delay(10000);
+  state = serialDelay(100,100);
+  return state;
 }
 
 /* Valve Closed */
-void valveClose(){
+State valveClose(){
+  State state = CLOSE;
   servo.write(close_servo);
-  delay(500);
+  state = serialDelay(5, 10);
   servo.detach();
+  return state;
+}
+
+/* delay Call back function */
+State serialDelay(int numofdelays, int delay_length){
+  State state = CLOSE;
+  for(int i=0;i<numofdelays;i++){
+    delay(delay_length);
+    if (Serial.available()){
+      state = (State)Serial.read();
+      if(state == STOP){
+        break;  
+      }
+    }
+  }
+  return state;
 }
