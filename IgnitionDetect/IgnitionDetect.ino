@@ -6,7 +6,7 @@ Servo servo;
 int close_servo = 17;
 int servoPin = 9;
 const int led = LED_BUILTIN; // place mat for igniter
-const int led2 = 13;
+const int led2 = 12;
 
 /* Assign states to input commands */
 typedef enum State {
@@ -97,9 +97,7 @@ State valveOpen(){
         servo.attach(servoPin); //mount servo
         servo.write(70); //test servo mounting
         state = serialDelay(20, 100); //wait 2 seconds
-
         servo.write(158); //open all the way
-
         state = serialDelay(100,100); //wait
         return state;
 }
