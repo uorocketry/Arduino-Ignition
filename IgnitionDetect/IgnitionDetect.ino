@@ -5,8 +5,11 @@ Servo servo;
 
 int close_servo = 17;
 int servoPin = 9;
-const int led = LED_BUILTIN; // place mat for igniter
-const int led2 = 12;
+
+const int relay = LED_BUILTIN; // place mat for igniter relay
+const int led_green = 12;
+const int led_yellow = 11;
+const int led_red = 10;
 
 /* Assign states to input commands */
 typedef enum State {
@@ -28,15 +31,21 @@ State valveClose();
 
 void setup()
 {
-        pinMode(led, OUTPUT);
-        pinMode(led2, OUTPUT);
-        digitalWrite(led, LOW);
-        digitalWrite(led, LOW);
+        pinMode(relay, OUTPUT);
+        pinMode(led_green, OUTPUT);
+        pinMode(led_yellow, OUTPUT);
+        pinMode(led_red, OUTPUT);
+
+        digitalWrite(relay, LOW);
+        digitalWrite(led_green, LOW);
+        digitalWrite(led_yellow, LOW);
+        digitalWrite(led_red, LOW);
+
         Serial.begin(9600);
         //attachInterrupt(digitalPinToInterrupt(interruptPin), kill_test, LOW);
         servo.attach(servoPin);
-        // initial state is stop
-        state = (State)STOP;
+        // initial state is close
+        state = (State)CLOSE;
 }
 
 void loop()
@@ -58,34 +67,47 @@ State stateMachine(State state)
         switch (state) {
         case STOP:
                 servo.attach(servoPin);
-                digitalWrite(led, HIGH);
-                digitalWrite(led2, HIGH);
+                digitalWrite(relay, LOW);
+                digitalWrite(led_green, LOW);
+                digitalWrite(led_yellow, HIGH);
+                digitalWrite(led_red, HIGH);
+
                 servo.write(close_servo);
                 servo.detach();
                 //Serial.println("END");
                 state = WAIT;
                 break;
         case IGNITE:
-                digitalWrite(led, LOW);                             
-                digitalWrite(led2, LOW);
-
-                s
-                state = WAIT;
+                digitalWrite(relay, HIGH);  
+                digitalWrite(led_green, HIGH);
+                digitalWrite(led_yellow, LOW);
+                digitalWrite(led_red, LOW);                           
+                state = serialDelay(20,100,OPEN);
                 break;
         case OPEN:
                 Serial.println("opening");
-                digitalWrite(led, LOW);
-                digitalWrite(led2, HIGH);
+                digitalWrite(relay, LOW);
+                digitalWrite(led_green, HIGH);
+                digitalWrite(led_yellow, HIGH);
+                digitalWrite(led_red, LOW); 
                 state = valveOpen();
                 Serial.println("done");
                 break;
         case CLOSE:
                 Serial.println("closing");
+                digitalWrite(relay, LOW);
+                digitalWrite(led_green, LOW);
+                digitalWrite(led_yellow, LOW);
+                digitalWrite(led_red, HIGH); 
                 state = valveClose();
                 state = WAIT;
                 break;
         case WAIT:
                 // delay until some command is given
+                digitalWrite(relay, LOW);
+                digitalWrite(led_green, HIGH);
+                digitalWrite(led_yellow, HIGH);
+                digitalWrite(led_red, HIGH); 
                 break;
 
         case PING:
@@ -114,7 +136,7 @@ State valveClose(){
         State state = CLOSE;
         servo.attach(servoPin); //mount servo
         servo.write(70);
-        state = serialDelay(5, 10);
+        state = serialDelay(5, 10, state);
         servo.detach();
         return state;
 }
