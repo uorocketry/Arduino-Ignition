@@ -1,79 +1,131 @@
 #include <Servo.h>
 #include <Arduino.h>
 
-  Servo servo;
+Servo servo;
 
-
-int inPin = 2;         // the number of the input pin
-int interruptPin = 3; // pin that triggers interrupt
-int close_servo = 25;
+int close_servo = 17;
 int servoPin = 9;
+const int led = LED_BUILTIN; // place mat for igniter
+const int led2 = 13;
 
-boolean interrupted = false;
-boolean ran = false;
-boolean switch_state = false;      // the current state of the output pin
-boolean switch_reading;           // the current reading from the input pin
-boolean switch_prev = true;    // the previous reading from the input pin
+/* Assign states to input commands */
+typedef enum State {
+        STOP = '1',
+        IGNITE = '2',
+        OPEN = '3',
+        WAIT = '4',
+        CLOSE = '5'
+};
 
-long time = 0;         // the last time the output pin was toggled
-long debounce = 200;   // the debounce time, increase if the output flickers
+State state;
+State temp;
+/* Function Prototypes */
+State stateMachine(State state);
+State serialDelay(int numofdelays, int delay_length);
+State valveOpen();
+State valveClose();
 
 void setup()
 {
-  pinMode(inPin, INPUT);
-  Serial.begin(9600);
-  attachInterrupt(digitalPinToInterrupt(interruptPin), kill_test, LOW);
-      servo.attach(servoPin);
-
+        pinMode(led, OUTPUT);
+        pinMode(led2, OUTPUT);
+        digitalWrite(led, LOW);
+        digitalWrite(led, LOW);
+        Serial.begin(9600);
+        //attachInterrupt(digitalPinToInterrupt(interruptPin), kill_test, LOW);
+        servo.attach(servoPin);
+        // initial state is stop
+        state = (State)STOP;
 }
 
 void loop()
 {
-  switch_reading = digitalRead(inPin);
-
-  if (switch_reading != switch_prev && millis() - time > debounce or switch_reading != switch_prev && millis() - time > debounce) {
-    if (switch_state)
-      switch_state = false;
-    else
-      switch_state = true;
-
-    time = millis();
-  }
-
-  //**************************** insert code for valve in here***************************************
-  if (switch_state && !ran) {
-    Serial.println("on");
-
-    servo.write(70);
-    delay(2000);
-
-    for (int pos = 70; pos <= 110; pos++) {
-      servo.write(pos);
-      delay(40);
-    }
-
-    for (int pos = 110; pos <= 180; pos++) {
-      servo.write(pos);
-      delay(15);
-    }
-    delay(10000);
-    servo.write(close_servo);
-    delay(500);
-    servo.detach();
-    ran = true;
-  }
-  else {
-    Serial.println("off");
-  }
-  //*************************************************************************************************
-
-  switch_prev = switch_reading;
+        /* Read input Commands */
+        if (Serial.available()) {
+                temp = (State)Serial.read();
+                Serial.println(temp);
+                state = temp;
+                // TO DO: some check statement if serial input is not a defined enum value
+        }
+        state = stateMachine(state);
+        //Serial.println(state);
 }
 
-void kill_test() {
-  servo.attach(servoPin);
-  Serial.println("END");
-  servo.write(close_servo);
-  servo.detach();
+/*State machine function */
+State stateMachine(State state)
+{
+        switch (state) {
+        case STOP:
+                servo.attach(servoPin);
+                digitalWrite(led, HIGH);
+                digitalWrite(led2, HIGH);
+                servo.write(close_servo);
+                servo.detach();
+                //Serial.println("END");
+                state = WAIT;
+                break;
+        case IGNITE:
+                digitalWrite(led, LOW);                             
+                digitalWrite(led2, LOW);
 
-  }
+                state = WAIT;
+                break;
+        case OPEN:
+                Serial.println("opening");
+                digitalWrite(led, LOW);
+                digitalWrite(led2, HIGH);
+                state = valveOpen();
+                Serial.println("done");
+                break;
+        case CLOSE:
+                Serial.println("closing");
+                state = valveClose();
+                state = WAIT;
+                break;
+        case WAIT:
+                // delay until some command is given
+                break;
+        default:
+                break;
+        }
+        return state;
+}
+
+/* Valve Open Sequence */
+State valveOpen(){
+        State state = OPEN;
+        servo.attach(servoPin); //mount servo
+        servo.write(70); //test servo mounting
+        state = serialDelay(20, 100); //wait 2 seconds
+
+        servo.write(158); //open all the way
+
+        state = serialDelay(100,100); //wait
+        return state;
+}
+
+/* Valve Closed */
+State valveClose(){
+        State state = CLOSE;
+        servo.attach(servoPin); //mount servo
+        servo.write(70);
+        state = serialDelay(5, 10);
+        servo.detach();
+        return state;
+}
+
+/* delay Call back function */
+State serialDelay(int numofdelays, int delay_length){
+        State state = CLOSE;
+        for(int i=0; i<numofdelays; i++) {
+                delay(delay_length);
+                if (Serial.available()) {
+                        state = (State)Serial.read();
+                        if(state == STOP) {
+                                Serial.println("STOPPED");
+                                break;
+                        }
+                }
+        }
+        return state;
+}
