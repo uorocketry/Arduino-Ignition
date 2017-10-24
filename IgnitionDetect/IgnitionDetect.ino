@@ -14,7 +14,8 @@ typedef enum State {
         IGNITE = '2',
         OPEN = '3',
         WAIT = '4',
-        CLOSE = '5'
+        CLOSE = '5',
+        PING = '6'
 };
 
 State state;
@@ -68,6 +69,7 @@ State stateMachine(State state)
                 digitalWrite(led, LOW);                             
                 digitalWrite(led2, LOW);
 
+                s
                 state = WAIT;
                 break;
         case OPEN:
@@ -85,6 +87,11 @@ State stateMachine(State state)
         case WAIT:
                 // delay until some command is given
                 break;
+
+        case PING:
+              Serial.println("I am ALIVE!");
+              state = WAIT;
+              break;
         default:
                 break;
         }
@@ -96,9 +103,9 @@ State valveOpen(){
         State state = OPEN;
         servo.attach(servoPin); //mount servo
         servo.write(70); //test servo mounting
-        state = serialDelay(20, 100); //wait 2 seconds
+        state = serialDelay(20, 100, WAIT); //wait 2 seconds
         servo.write(158); //open all the way
-        state = serialDelay(100,100); //wait
+        state = serialDelay(100,100, CLOSE); //wait
         return state;
 }
 
@@ -113,8 +120,8 @@ State valveClose(){
 }
 
 /* delay Call back function */
-State serialDelay(int numofdelays, int delay_length){
-        State state = CLOSE;
+State serialDelay(int numofdelays, int delay_length, State next_state){
+        State state = next_state;
         for(int i=0; i<numofdelays; i++) {
                 delay(delay_length);
                 if (Serial.available()) {
