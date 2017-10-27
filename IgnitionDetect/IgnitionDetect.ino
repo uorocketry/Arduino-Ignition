@@ -25,11 +25,8 @@ State state;
 State temp;
 /* Function Prototypes */
 State stateMachine(State state);
-<<<<<<< HEAD
 State serialDelay(int numofdelays, int delay_length, State next_state);
-=======
 State serialDelay(int numofdelays, int delay_length);
->>>>>>> b25883cc7d9ee2f9957de10a2a972c61726821d5
 State valveOpen();
 State valveClose();
 
@@ -159,8 +156,4 @@ State serialDelay(int numofdelays, int delay_length, State next_state){
                 }
         }
         return state;
-<<<<<<< HEAD
 }
-=======
-}
->>>>>>> b25883cc7d9ee2f9957de10a2a972c61726821d5
