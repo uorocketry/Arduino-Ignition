@@ -26,7 +26,6 @@ State temp;
 /* Function Prototypes */
 State stateMachine(State state);
 State serialDelay(int numofdelays, int delay_length, State next_state);
-State serialDelay(int numofdelays, int delay_length);
 State valveOpen();
 State valveClose();
 
@@ -43,7 +42,6 @@ void setup()
         digitalWrite(led_red, LOW);
 
         Serial.begin(9600);
-        //attachInterrupt(digitalPinToInterrupt(interruptPin), kill_test, LOW);
         servo.attach(servoPin);
         // initial state is close
         state = (State)CLOSE;
@@ -59,7 +57,6 @@ void loop()
                 // TO DO: some check statement if serial input is not a defined enum value
         }
         state = stateMachine(state);
-        //Serial.println(state);
 }
 
 /*State machine function */
